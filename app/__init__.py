@@ -1,1 +1,1 @@
-from .pipeline import rag_answer
+from app.rag.pipeline import rag_answer

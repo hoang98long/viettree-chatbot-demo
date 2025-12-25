@@ -1,8 +1,8 @@
 # scripts/download_embedding.py
 from sentence_transformers import SentenceTransformer
 
-MODEL_NAME = "intfloat/multilingual-e5-base"
-LOCAL_PATH = "models/embeddings/multilingual-e5-base"
+MODEL_NAME = "BAAI/bge-m3"
+LOCAL_PATH = "models/embedding/bge-m3"
 
 model = SentenceTransformer(
     MODEL_NAME,

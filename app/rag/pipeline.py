@@ -24,39 +24,25 @@ def init_rag():
         _embedding_model = load_embedding_model(str(EMBEDDING_MODEL_PATH))
 
     if _vector_store is None:
-        _vector_store = VectorStore(dim=768)
-        if not os.path.exists(FAISS_PATH / "index.faiss"):
+        index_file = FAISS_PATH / "index.faiss"
+        if not index_file.exists():
             raise RuntimeError(
-                "❌ FAISS index chưa tồn tại. Hãy chạy: python -m scripts.ingest"
+                "❌ Chưa có FAISS index. Hãy chạy: python -m scripts.ingest"
             )
+        _vector_store = VectorStore(dim=768)
         _vector_store.load(str(FAISS_PATH))
 
     if _tokenizer is None or _model is None:
         _tokenizer, _model = load_llm(str(LLM_MODEL_PATH))
 
 
-def rag_answer(question: str) -> str:
+def retrieve_chunks(query: str):
     init_rag()
+    q_vec = _embedding_model.encode([query])
+    return _vector_store.search(q_vec, TOP_K)
 
-    q_vec = _embedding_model.encode([question])
-    docs = _vector_store.search(q_vec, TOP_K)
 
-    context = "\n\n".join(docs)
-
-    prompt = f"""
-Bạn là trợ lý AI.
-Chỉ trả lời dựa trên nội dung tài liệu.
-Nếu không có, nói: "Không tìm thấy thông tin trong tài liệu".
-
-TÀI LIỆU:
-{context}
-
-CÂU HỎI:
-{question}
-
-TRẢ LỜI:
-"""
-
+def generate_answer(prompt: str) -> str:
     inputs = _tokenizer(prompt, return_tensors="pt").to(_model.device)
 
     with torch.no_grad():
